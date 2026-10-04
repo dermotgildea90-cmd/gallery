@@ -18,7 +18,7 @@
    for details.
 -->
 <data-extraction-rules>
-    <cloud-backup>
+    <cloud-backup><exclude domain="sharedpref" path="api_server_config.xml"/>
         <!-- TODO: Use <include> and <exclude> to control what is backed up.
         <include .../>
         <exclude .../>
@@ -30,4 +30,4 @@
         <exclude .../>
     </device-transfer>
     -->
-</data-extraction-rules>
+<device-transfer><exclude domain="sharedpref" path="api_server_config.xml"/></device-transfer></data-extraction-rules>

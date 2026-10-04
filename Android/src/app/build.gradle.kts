@@ -34,11 +34,11 @@ android {
   compileSdk { this.version = release(37) { minorApiLevel = 0 } }
 
   defaultConfig {
-    applicationId = "com.google.aiedge.gallery"
+    applicationId = "com.dermotgildea.gallery.localapi"
     minSdk = 31
     targetSdk = 37
     versionCode = 43
-    versionName = "1.0.19"
+    versionName = "1.0.19-local-api"
 
     // Needed for HuggingFace auth workflows.
     // Use the scheme of the "Redirect URLs" in HuggingFace app.
@@ -63,6 +63,8 @@ android {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
   }
+  testOptions { unitTests.isReturnDefaultValues = true }
+
   buildFeatures {
     compose = true
     buildConfig = true

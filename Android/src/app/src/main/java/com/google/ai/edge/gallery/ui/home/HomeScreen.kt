@@ -171,6 +171,7 @@ fun HomeScreen(
 ) {
   val uiState by modelManagerViewModel.uiState.collectAsState()
   var showSettingsDialog by remember { mutableStateOf(false) }
+  var showApiServer by remember { mutableStateOf(false) }
   var showTosDialog by remember { mutableStateOf(!tosViewModel.getIsTosAccepted()) }
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
@@ -330,6 +331,14 @@ fun HomeScreen(
               }
               Spacer(modifier = Modifier.height(16.dp))
               Row(modifier = Modifier.fillMaxWidth()) {
+                SquareDrawerItem(
+                  label = "API Server",
+                  description = "Local OpenAI-compatible API",
+                  icon = Icons.Rounded.Settings,
+                  onClick = { showApiServer = true; scope.launch { drawerState.close() } },
+                  modifier = Modifier.weight(1f),
+                  iconBrush = linearGradient(colors = listOf(Color(0xFF4CAF50), Color(0xFF2E7D32))),
+                )
               }
             }
           }
@@ -516,6 +525,9 @@ fun HomeScreen(
   }
 
   // Settings dialog.
+  if (showApiServer) {
+    com.google.ai.edge.gallery.ui.home.ApiServerDialog(modelManagerViewModel = modelManagerViewModel, onDismiss = { showApiServer = false })
+  }
   if (showSettingsDialog) {
     SettingsDialog(
       curThemeOverride = modelManagerViewModel.readThemeOverride(),
