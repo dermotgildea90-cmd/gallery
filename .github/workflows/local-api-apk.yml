@@ -1,4 +1,4 @@
-name: Local API APK
+name: Local API Release APK
 on:
   workflow_dispatch:
   push:
@@ -18,17 +18,44 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install SDK platform
         run: sdkmanager 'platforms;android-37.0' 'build-tools;35.0.0'
+      - name: Record release dependencies
+        working-directory: Android/src
+        run: |
+          chmod +x gradlew
+          mkdir -p build/diagnostics
+          git rev-parse HEAD > build/diagnostics/source-commit.txt
+          ./gradlew :app:dependencies --configuration releaseRuntimeClasspath --no-daemon > build/diagnostics/release-dependencies.txt
+          ./gradlew :app:dependencyInsight --dependency litertlm-android --configuration releaseRuntimeClasspath --no-daemon > build/diagnostics/litertlm-dependency.txt
       - name: Build and test
         working-directory: Android/src
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon
+          ./gradlew :app:assembleRelease :app:testReleaseUnitTest --no-daemon
+      - name: Record packaged native library hashes
+        working-directory: Android/src
+        run: |
+          python3 - <<'PY'
+          import hashlib, pathlib, zipfile
+          apk = pathlib.Path("app/build/outputs/apk/release/app-release.apk")
+          with zipfile.ZipFile(apk) as archive:
+              rows = [
+                  f"{name}\t{archive.getinfo(name).file_size}\t{hashlib.sha256(archive.read(name)).hexdigest()}"
+                  for name in sorted(archive.namelist())
+                  if name.startswith("lib/") and name.endswith(".so")
+              ]
+          pathlib.Path("build/diagnostics/native-libraries.tsv").write_text(
+              "path\tbytes\tsha256\n" + "\n".join(rows) + "\n"
+          )
+          PY
       - uses: actions/upload-artifact@v4
         with:
-          name: gallery-1.0.19-local-api-debug
-          path: Android/src/app/build/outputs/apk/debug/app-debug.apk
+          name: gallery-1.0.19-local-api-release
+          path: Android/src/app/build/outputs/apk/release/app-release.apk
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: local-api-test-results
-          path: Android/src/app/build/reports/tests/testDebugUnitTest
+          name: local-api-release-diagnostics
+          path: |
+            Android/src/build/diagnostics/
+            Android/src/app/build/reports/tests/testReleaseUnitTest
+
